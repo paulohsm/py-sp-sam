@@ -1,7 +1,7 @@
 __author__ = 'santiago'
 __name__ = 'read_semiprog_in'
 
-def readsemiprogin(input_file):
+def readsemiprogin(input_file, return_var):
     data = open(input_file, 'r')
 
     lines = data.readlines()
@@ -75,14 +75,84 @@ def readsemiprogin(input_file):
             lwrh[l][k] = float(lines[nk].split('\t')[8])
             #lwrh2[l][k] = float(lines[nk].split('\t')[8])
 
+    if return_var == 'nz':
+        return nz
+    elif return_var == 'tstep':
+        return tstep
+    elif return_var == 'lon':
+        return lon
+    elif return_var == 'lat':
+        return lat
+    elif return_var == 'topo':
+        return topo
+    elif return_var == 'lmsk':
+        return lmsk
+    elif return_var == 'tstep':
+        return tstep
+    elif return_var == 'nrec':
+        return nrec
+    elif return_var == 'pres':
+        return pres
+    elif return_var == 'time':
+        return time
+    elif return_var == 'pslc':
+        return pslc
+    elif return_var == 'usst':
+        return usst
+    elif return_var == 'vsst':
+        return vsst
+    elif return_var == 'cssf':
+        return cssf
+    elif return_var == 'clsf':
+        return clsf
+    elif return_var == 'ocis':
+        return ocis
+    elif return_var == 'oces':
+        return oces
+    elif return_var == 'iswf':
+        return oswf
+    elif return_var == 'roce':
+        return roce
+    elif return_var == 'olis':
+        return olis
+    elif return_var == 'oles':
+        return oles
+    elif return_var == 'role':
+        return role
+    elif return_var == 'swtc':
+        return swtc
+    elif return_var == 'ocic':
+        return ocic
+    elif return_var == 'lwtc':
+        return lwtc
+    elif return_var == 'lwbc':
+        return lwbc
+    elif return_var == 'temp':
+        return temp
+    elif return_var == 'umes':
+        return umes
+    elif return_var == 'liqm':
+        return liqm
+    elif return_var == 'icem':
+        return icem
+    elif return_var == 'uvel':
+        return uvel
+    elif return_var == 'vvel':
+        return vvel
+    elif return_var == 'swrh':
+        return swrh
+    elif return_var == 'lwrh':
+        return lwrh
+
 
     #print lwrh.__len__()
     #return lwrh
     #print lwrh1
     #print lwrh2
 
-#f_in = '/home/santiago/Modelos/sp-sam/SEMIPROG_IN'
-#readsemiprogin(f_in)
+f_in = '/home/santiago/Modelos/sp-sam/SEMIPROG_IN'
+variavel = readsemiprogin(f_in, 'vvel')
+print variavel
 #lwrh = readsemiprogin(f_in)
 #print lwrh1
 #print lwrh2
