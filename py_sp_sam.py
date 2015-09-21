@@ -1,11 +1,179 @@
-__author__ = 'santiago'
+# -*- coding: utf-8 -*-
+
 __name__ = 'Py_SP_SAM'
+__author__ = 'Paulo Santiago'
+__email__ = 'paulohsm@gmail.com'
+__licence__ = 'FY - Fuck You'
+__date__ = '2015/09/18'
 
-# The main module for Python SP-SAM routines
+
+def read_semiprogin(input_file, return_var):
+    """
+    This Python function simply read a variable from SEMIPROG_IN file given the
+    arguments below. SEMIPROG_IN is the file used to store initial conditions
+    for SAM superparameterization diagnostic tests.
+    :param input_file: input file name, full or relative path;
+    :param return_var: the name of the variable one want to read in the input.
+    :return: a Python list of values relative to the variable name provided.
+    """
+    var_list = ['nt', 'nz', 'tstep', 'lon', 'lat', 'topo', 'lmsk', 'pres',
+                'time', 'pslc', 'usst', 'vsst', 'cssf', 'clsf', 'ocis', 'oces',
+                'iswf', 'roce', 'olis', 'oles', 'role', 'swtc', 'ocic', 'lwtc',
+                'lwbc', 'temp', 'umes', 'liqm', 'icem', 'uvel', 'vvel', 'swrh',
+                'lwrh']
+
+    if not return_var in var_list:
+        print 'You must provide a valid variable name. Pick one from the list' \
+              'below:'
+        print var_list
+        sys.exit("Exit now. Try again.")
+
+    var_dict = dict(zip(var_list, range(len(var_list))))
+    data = open(input_file, 'r')
+    lines = data.readlines()
+
+    nz = int(lines[0].split('\t')[0])
+    nt = (len(lines) - 1) / (nz + 2)
+
+    # The following conditional complex structure is necessary in order to take
+    # into account the way the data is organized in SEMIPROG_IN file. Every
+    # conditional refers to a 'section' in the file.
+    if var_dict[return_var] == 0:
+        return nt
+    elif var_dict[return_var] == 1:
+        return nz
+    elif var_dict[return_var] in range(2,7):
+        var_vals = float(lines[0].split('\t')[var_dict[return_var]-1])
+        return var_vals
+    elif var_dict[return_var] == 7:
+        var_vals = []
+        for k in range(nz):
+            var_vals.append(float(lines[k+3].split('\t')[0]))
+        return var_vals
+    elif var_dict[return_var] == 8:
+        var_vals = []
+        for l in range(nt):
+            ll = 1 + l * (nz + 1)
+            var_vals.append(lines[ll].split('\t')[0])
+        return var_vals
+    elif var_dict[return_var] in range(9,17):
+        var_vals = []
+        for l in range(nt):
+            idx = var_dict[return_var] - 8
+            ll = 1 + l * (nz + 1)
+            var_vals.append(float(lines[ll].split('\t')[idx]))
+        return var_vals
+    elif var_dict[return_var] in range(17,25):
+        var_vals = []
+        for l in range(nt):
+            idx = var_dict[return_var] - 17
+            ll = 2 + l * (nz + 1)
+            var_vals.append(float(lines[ll].split('\t')[idx]))
+        return var_vals
+    else:
+        idx = var_dict[return_var] - 24
+        var_vals = [[0 for x in range(nz)] for x in range(nt)]
+        for l in range(nt):
+            for k in range(nz):
+                lk = 3 + l * (nz + 1) + k
+                var_vals[l][k] = float(lines[lk].split('\t')[idx])
+        return var_vals
 
 
-import read_semiprog_in
+def read_semiprogout(input_file, return_var):
+    import sys
+    """
+    Reads data from SAM superparameterization (SP) diagnostic test output
+    :param input_file: input file name - full or relative path;
+    :param return_var: the name of the variable one want to read in the input.
+    :return: a Python list of values relative to the variable name provided.
+    """
 
-f_in = '/home/santiago/Modelos/sp-sam/SEMIPROG_IN'
-read_semiprog_in.readsemiprogin(f_in)
+def read_agcmdiagfields1d(input_file, return_var):
+    import sys
+    """
+    This function reads the variables stored in AGCM's diagnostic surface fields
+    given the input file name and the variable.
+    :param input_file: input file name, full or relative path;
+    :param return_var: the name of the variable one want to read in the input.
+    :return: a Python list of values relative to the variable name provided.
+    """
+    var_list = ['time', 'uves', 'vves', 'tems', 'umrs', 'agpl', 'tsfc', 't02m',
+                 'q02m', 'u10m', 'v10m', 'prec', 'prcv', 'neve', 'rnof', 'evap',
+                 'cbnv']
 
+    if not return_var in var_list:
+        print 'You must provide a valid variable name. Pick one from the list' \
+              'below:'
+        print var_list
+        sys.exit("Exit now. Try again.")
+
+    var_dict = dict(zip(var_list, range(len(var_list))))
+    data = open(input_file, 'r')
+    lines = data.readlines()
+
+    var_vals = []
+    for ll in range(len(lines)-1):
+        l = ll + 1
+        if var_dict[return_var] == 0:
+            var_vals.append(lines[l].split('\t')[0])
+        else:
+            var_vals.append(float(lines[l].split('\t')[var_dict[return_var]]))
+
+    return var_vals
+
+
+def read_agcmdiagfields2d(input_file, return_var):
+    import sys
+    """
+    This function reads the variables stored in AGCM's diagnostic surface fields
+    given the input file name and the variable.
+    :param input_file: input file name, full or relative path;
+    :param return_var: the name of the variable one want to read in the input.
+    :return: a Python list of values relative to the variable name provided.
+    """
+    var_list = ['time', 'pres', 'omeg', 'temv', 'zgeo', 'umrl', 'cvlh', 'cvms',
+                'lglh', 'lgms', 'acvr', 'ctot', 'cinv', 'csat', 'clwd', 'tke2']
+
+    if not return_var in var_list:
+        print 'You must provide a valid variable name. Pick one from the list' \
+              'below:'
+        print var_list
+        sys.exit("Exit now. Try again.")
+
+    var_dict = dict(zip(var_list, range(len(var_list))))
+    data = open(input_file, 'r')
+    lines = data.readlines()
+
+    nz = 28
+    nt = len(lines) / (nz + 1)
+
+    if var_dict[return_var] == 0:
+        var_vals = [0 for x in range(nt)]
+        for l in range(nt):
+            n = l * (nz + 1)
+            var_vals[l] = lines[n].split('\t')[0]
+        return var_vals
+    elif var_dict[return_var] == 1:
+        var_vals = [0 for x in range(nz)]
+        for k in range(nz):
+            var_vals[k] = lines[k+1].split('\t')[0]
+        return var_vals
+    else:
+        var_vals = [[0 for x in range(nz)] for x in range(nt)]
+        idx = var_dict[return_var] - 1
+        for l in range(nt):
+            for k in range(nz):
+                nk = l * (nz + 1) + (k + 1)
+                var_vals[l][k] = float(lines[nk].split('\t')[idx])
+        return var_vals
+
+
+time1d = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
+uves = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'uves')
+
+#print len(uves)
+temv = read_agcmdiagfields2d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_2D-GRE01', 'temv')
+
+temp = read_semiprogin('/home/santiago/Modelos/SEMIPROG_IN/SEMIPROG_IN-SPDARA02', 'temp')
+print temp
