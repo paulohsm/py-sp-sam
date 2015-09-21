@@ -145,40 +145,27 @@ def readsemiprogin(input_file, return_var):
         return lwrh
 
 
-    #print lwrh.__len__()
-    #return lwrh
-    #print lwrh1
-    #print lwrh2
+#from pylab import contourf, show
+from numpy import asarray, shape
+#f_in = '/home/santiago/Modelos/sp-sam/SEMIPROG_IN'
+#temp = map(list, map(None,*readsemiprogin(f_in, 'temp')))
+#temp = readsemiprogin(f_in, 'temp')
+#ttemp = map(None,*temp)
+#nlev = readsemiprogin(f_in, 'nz')
+#ntim = len(temp)
+#print map(None,*my_list)
 
-f_in = '/home/santiago/Modelos/sp-sam/SEMIPROG_IN'
-variavel = readsemiprogin(f_in, 'vvel')
-print variavel
-#lwrh = readsemiprogin(f_in)
-#print lwrh1
-#print lwrh2
+#k = range(nlev)
+#l = range(ntim)
+#print len(l), len(k)
+#larr = asarray(l)
+#karr = asarray(k)
+#temparr = asarray(temp)
+#print shape(temparr)
+#print len(l), len(k)
+#contourf(l,k,ttemp)
+#show()
 
 
-#nlines = 0
-#for line in lines:
-#    print line
-#    nlines = nlines + 1
-
-#print nlines
-
-
-#for line in data:
-
-#with open(f_in, 'r') as data:
-#    line = data.readlines(1)[0].split('\t')
-
-#nz = line[0]
-#tstep = line[1]
-#lon = line[2]
-#lat = line[3]
-#topo = line[4]
-#lmsk = line[5]
-
-#print line.
-
-#nrec =
-
+#from pylab import *
+#xrange = range(100)

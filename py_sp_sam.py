@@ -88,6 +88,63 @@ def read_semiprogout(input_file, return_var):
     :param return_var: the name of the variable one want to read in the input.
     :return: a Python list of values relative to the variable name provided.
     """
+    var_list = ['t0', 'nx', 'ny', 'nz', 'nt', 'dt', 'lon', 'lat', 'topo',
+                'ocnfrac', 'pmid', 'pdel', 'precc', 'precl', 'precsc', 'precsl',
+                'cltot', 'clhgh', 'clmed', 'cllow', 'taux_crm', 'tauy_crm',
+                'z0m', 'prectend', 'precstend', 'zmid', 'ultend', 'vltend',
+                'qltend', 'qcltend', 'qcitend', 'sltend', 'cld', 'cldr',
+                'cldtop', 'gicewp', 'gliqwp', 'mc', 'mcup', 'mcdn', 'mcuup',
+                'mcudn', 'crm_qc', 'crm_qi', 'crm_qs', 'crm_qg', 'crm_qr',
+                'tkez', 'tkesgsz', 'flux_u', 'flux_v', 'flux_qt', 'fluxsgs_qt',
+                'flux_qp', 'pflx', 'qt_ls', 'qt_trans', 'qp_trans', 'qp_fall',
+                'qp_evp', 'qp_src', 't_ls']
+
+    if not return_var in var_list:
+        print 'You must provide a valid variable name. Pick one from the list' \
+              'below:'
+        print var_list
+        sys.exit("Exit now. Try again.")
+
+    var_dict = dict(zip(var_list, range(len(var_list))))
+    data = open(input_file, 'r')
+    lines = data.readlines()
+
+    nrec = len(lines) - 3 / 38
+    print nrec
+
+    nz = int(lines[0].split()[3])
+    nt = int(lines[0].split()[4])
+
+    if var_dict[return_var] == 0:
+        return lines[0].split()[0]
+    elif var_dict[return_var] in range(1,5):
+        return int(lines[0].split()[var_dict[return_var]])
+    elif var_dict[return_var] in range(5,10):
+        return float(lines[0].split()[var_dict[return_var]])
+    elif var_dict[return_var] == 10:
+        var_vals = []
+        for element in lines[1].split():
+            var_vals.append(float(element))
+        return var_vals
+    elif var_dict[return_var] == 11:
+        var_vals = []
+        for element in lines[2].split():
+            var_vals.append(float(element))
+        return var_vals
+    elif var_dict[return_var] in range(12,26):
+        idx = var_dict[return_var] - 12
+        var_vals = []
+        for l in range(nt):
+            var_vals.append(float(lines[l+3].split()[idx]))
+        return var_vals
+    else:
+        var_vals = [[0 for x in range(nz)] for x in range(nt)]
+        for l in range(nt):
+            for k in range(nz):
+                n = 4 + l * nt + var_dict[return_var] - 26
+                var_vals[l][k] = float(lines[n].split()[k])
+        return var_vals
+
 
 def read_agcmdiagfields1d(input_file, return_var):
     import sys
@@ -169,11 +226,15 @@ def read_agcmdiagfields2d(input_file, return_var):
         return var_vals
 
 
-time1d = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
-uves = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'uves')
+#time1d = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
+#uves = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'uves')
 
 #print len(uves)
-temv = read_agcmdiagfields2d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_2D-GRE01', 'temv')
+#temv = read_agcmdiagfields2d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_2D-GRE01', 'temv')
 
-temp = read_semiprogin('/home/santiago/Modelos/SEMIPROG_IN/SEMIPROG_IN-SPDARA02', 'temp')
-print temp
+#temp = read_semiprogin('/home/santiago/Modelos/SEMIPROG_IN/SEMIPROG_IN-SPDARA02', 'temp')
+#print temp
+
+#tkez = read_semiprogout('/home/santiago/Modelos/exps_spsam_1200s/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'tkez')
+tkez = read_semiprogout('/home/santiago/Modelos/exps_spsam_1200s/ZMC01_128x001x1000x05s/SEMIPROG_OUT', 'tkez')
+print tkez
