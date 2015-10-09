@@ -143,6 +143,7 @@ def read_semiprogout(input_file, return_var):
             for k in range(nz):
                 n = 4 + l * nt + var_dict[return_var] - 26
                 var_vals[l][k] = float(lines[n].split()[k])
+                print var_vals[l][k]
         return var_vals
 
 
@@ -226,6 +227,30 @@ def read_agcmdiagfields2d(input_file, return_var):
         return var_vals
 
 
+def accum3(var):
+    """
+    Computes 3 steps accumulation of any variable (useful to get 3-hour
+    accumulated precipitation from hourly measurements)
+    :param var: hourly precipitation for a specific location.
+    :return: 3 steps accumulated values.
+    """
+    accum3 = []
+    for step in range(2,len(var),3):
+        accum3.append(var[step] + var[step-1] + var[step-2])
+
+    return accum3
+
+
+
+
+
+
+time_agcm = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
+prec_agcm = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'prec')
+
+print accum3(prec_agcm)
+
+
 #time1d = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
 #uves = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'uves')
 
@@ -236,5 +261,11 @@ def read_agcmdiagfields2d(input_file, return_var):
 #print temp
 
 #tkez = read_semiprogout('/home/santiago/Modelos/exps_spsam_1200s/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'tkez')
-tkez = read_semiprogout('/home/santiago/Modelos/exps_spsam_1200s/ZMC01_128x001x1000x05s/SEMIPROG_OUT', 'tkez')
-print tkez
+#tkez = read_semiprogout('/home/santiago/Modelos/exps_spsam_1200s/ZMC01_032x001x4000x20s/SEMIPROG_OUT', 'tkez')
+#print tkez
+
+# working simulations output:
+# /home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT
+# /home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT
+# /home/santiago/Modelos/exps_spsam_2015-09-24/ZMC01_032x001x4000x20s/SEMIPROG_OUT
+
