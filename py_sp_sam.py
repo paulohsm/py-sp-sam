@@ -241,14 +241,87 @@ def accum3(var):
     return accum3
 
 
+def get_num(x):
+    """
+    Returns numbers containted in strings.
+    :param x: a string.
+    :return: the numbers contained in the string.
+    """
+    return float(''.join(ele for ele in x if ele.isdigit() or ele=='.'))
 
 
+def find_nearest_idx(value, array):
+    """
+    Given a single value, returns the index of the nearest value in an
+    array/list.
+    :param value: the value one want to check the nearest index in the array.
+    :param array: the array where one wants to check the index of the nearest
+    value.
+    :return: the array index (integer) of the nearest value.
+    """
+    from numpy import abs
+    idx = (abs(array-value)).argmin()
+    #print 'Nearest grid point and index:', array[idx], idx
+    return idx #return array[idx]
 
 
-time_agcm = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
-prec_agcm = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'prec')
+def load_trmm_series(path, long, lati):
+    """
+    Loads TRMM 3B42RT data as a time series for tha given lon, lat location.
+    :param path: the location of TRMM 3B42RT data.
+    :param long: longitude in 0:360 range
+    :param lati: latitude in -90:90 range.
+    :return: a large matrix of precipitation data.
+    """
 
-print accum3(prec_agcm)
+    from pytrmm import TRMM3B42RTFile
+    from datetime import datetime
+    from glob import glob
+    from numpy import linspace
+
+    # loading the TRMM data
+    pref = '3B42RT.'
+    suff = '.7R2.bin.gz'
+    time_stamps = []
+    trmm_series = []
+    print 'Loading a series of TRMM matrices... please wait.'
+    filelist = glob(path + '/' + pref + '*' + suff)
+    for filepath in filelist:
+        trmmfile = TRMM3B42RTFile(filepath)
+        time_string = trmmfile.header()['granule_ID'].split(".")[1]
+        time_stamps.append(datetime.strptime(time_string, "%Y%m%d%H"))
+        trmm_series.append(trmmfile.precip())
+
+    # variables used to define grids and axes
+    nlon = int(trmmfile.header()['number_of_longitude_bins'])
+    nlat = int(trmmfile.header()['number_of_latitude_bins'])
+    ntim = len(trmm_series)
+    # 'first_box_center': '59.875N,0.125E'
+    # 'last_box_center': '59.875S,359.875E'
+    lon0 = get_num(trmmfile.header()['first_box_center'].split(",")[1])
+    lat0 = -get_num(trmmfile.header()['first_box_center'].split(",")[0])
+    lon1 = get_num(trmmfile.header()['last_box_center'].split(",")[1])
+    lat1 = get_num(trmmfile.header()['last_box_center'].split(",")[0])
+    # creates zonal and meridional axes
+    lons = linspace(lon0, lon1, nlon)
+    lats = linspace(lat0, lat1, nlat)
+    lon_idx = find_nearest_idx(lons, long)
+    lat_idx = find_nearest_idx(lats, lati)
+    trmm_point = []
+    for it in range(ntim):
+        trmm_point.append(trmm_series[it][lat_idx, lon_idx])
+
+    return trmm_stamps, trmm_point
+
+
+trmm_time, trmm_prec = load_trmm_series('/home/santiago/Datasets/TRMM-3B42RT/200401', 360.0-39.5, -4.0)
+agcm_time = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
+agcm_prec = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'prec')
+spsam_time = read_semiprogout()
+spsam_prec =
+
+#print accum3(prec_agcm)
+#print load_trmm_series('/home/santiago/Datasets/TRMM-3B42RT/200401', 360.0-39.5, -4.0)
 
 
 #time1d = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
