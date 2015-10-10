@@ -16,6 +16,9 @@ def read_semiprogin(input_file, return_var):
     :param return_var: the name of the variable one want to read in the input.
     :return: a Python list of values relative to the variable name provided.
     """
+
+    import sys
+
     var_list = ['nt', 'nz', 'tstep', 'lon', 'lat', 'topo', 'lmsk', 'pres',
                 'time', 'pslc', 'usst', 'vsst', 'cssf', 'clsf', 'ocis', 'oces',
                 'iswf', 'roce', 'olis', 'oles', 'role', 'swtc', 'ocic', 'lwtc',
@@ -28,6 +31,7 @@ def read_semiprogin(input_file, return_var):
         print var_list
         sys.exit("Exit now. Try again.")
 
+    print 'Loading SEMIPROG_IN (', input_file, '): ', return_var
     var_dict = dict(zip(var_list, range(len(var_list))))
     data = open(input_file, 'r')
     lines = data.readlines()
@@ -81,13 +85,13 @@ def read_semiprogin(input_file, return_var):
 
 
 def read_semiprogout(input_file, return_var):
-    import sys
     """
     Reads data from SAM superparameterization (SP) diagnostic test output
     :param input_file: input file name - full or relative path;
     :param return_var: the name of the variable one want to read in the input.
     :return: a Python list of values relative to the variable name provided.
     """
+    import sys
     var_list = ['t0', 'nx', 'ny', 'nz', 'nt', 'dt', 'lon', 'lat', 'topo',
                 'ocnfrac', 'pmid', 'pdel', 'precc', 'precl', 'precsc', 'precsl',
                 'cltot', 'clhgh', 'clmed', 'cllow', 'taux_crm', 'tauy_crm',
@@ -105,12 +109,12 @@ def read_semiprogout(input_file, return_var):
         print var_list
         sys.exit("Exit now. Try again.")
 
+    print 'Loading SEMIPROG_OUT (', input_file, '): ', return_var
     var_dict = dict(zip(var_list, range(len(var_list))))
     data = open(input_file, 'r')
     lines = data.readlines()
 
     nrec = len(lines) - 3 / 38
-    print nrec
 
     nz = int(lines[0].split()[3])
     nt = int(lines[0].split()[4])
@@ -148,7 +152,7 @@ def read_semiprogout(input_file, return_var):
 
 
 def read_agcmdiagfields1d(input_file, return_var):
-    import sys
+
     """
     This function reads the variables stored in AGCM's diagnostic surface fields
     given the input file name and the variable.
@@ -156,6 +160,9 @@ def read_agcmdiagfields1d(input_file, return_var):
     :param return_var: the name of the variable one want to read in the input.
     :return: a Python list of values relative to the variable name provided.
     """
+
+    import sys
+
     var_list = ['time', 'uves', 'vves', 'tems', 'umrs', 'agpl', 'tsfc', 't02m',
                  'q02m', 'u10m', 'v10m', 'prec', 'prcv', 'neve', 'rnof', 'evap',
                  'cbnv']
@@ -166,6 +173,7 @@ def read_agcmdiagfields1d(input_file, return_var):
         print var_list
         sys.exit("Exit now. Try again.")
 
+    print 'Loading AGCM 1D fields (', input_file, '): ', return_var
     var_dict = dict(zip(var_list, range(len(var_list))))
     data = open(input_file, 'r')
     lines = data.readlines()
@@ -182,7 +190,6 @@ def read_agcmdiagfields1d(input_file, return_var):
 
 
 def read_agcmdiagfields2d(input_file, return_var):
-    import sys
     """
     This function reads the variables stored in AGCM's diagnostic surface fields
     given the input file name and the variable.
@@ -190,6 +197,9 @@ def read_agcmdiagfields2d(input_file, return_var):
     :param return_var: the name of the variable one want to read in the input.
     :return: a Python list of values relative to the variable name provided.
     """
+
+    import sys
+
     var_list = ['time', 'pres', 'omeg', 'temv', 'zgeo', 'umrl', 'cvlh', 'cvms',
                 'lglh', 'lgms', 'acvr', 'ctot', 'cinv', 'csat', 'clwd', 'tke2']
 
@@ -199,6 +209,7 @@ def read_agcmdiagfields2d(input_file, return_var):
         print var_list
         sys.exit("Exit now. Try again.")
 
+    print 'Loading AGCM 2D fields (', input_file, '): ', return_var
     var_dict = dict(zip(var_list, range(len(var_list))))
     data = open(input_file, 'r')
     lines = data.readlines()
@@ -279,16 +290,17 @@ def load_trmm_series(path, long, lati):
     from glob import glob
     from numpy import linspace
 
-    # loading the TRMM data
+    # loading TRMM data
     pref = '3B42RT.'
     suff = '.7R2.bin.gz'
     time_stamps = []
     trmm_series = []
     print 'Loading a series of TRMM matrices... please wait.'
-    filelist = glob(path + '/' + pref + '*' + suff)
+    filelist = sorted(glob(path + '/' + pref + '*' + suff))
     for filepath in filelist:
         trmmfile = TRMM3B42RTFile(filepath)
         time_string = trmmfile.header()['granule_ID'].split(".")[1]
+        print time_string
         time_stamps.append(datetime.strptime(time_string, "%Y%m%d%H"))
         trmm_series.append(trmmfile.precip())
 
@@ -311,14 +323,71 @@ def load_trmm_series(path, long, lati):
     for it in range(ntim):
         trmm_point.append(trmm_series[it][lat_idx, lon_idx])
 
-    return trmm_stamps, trmm_point
+    return time_stamps, trmm_point
 
+
+def trmm2npy(path):
+    """
+    Converts a TRMM 3B42RT time sequence in a Numpy data file.
+    :param path: the path where TRMM data is located; also the path where npy
+    file will be saved.
+    :return: a Numpy file containing TRMM data.
+    """
+
+    from pytrmm import TRMM3B42RTFile
+    from glob import glob
+    from numpy import asarray, save
+
+    pref = '3B42RT'
+    suff = '7R2.bin.gz'
+    #time_stamps = []
+    trmm_series = []
+
+    print 'Loading a series of TRMM matrices... please wait.'
+    filelist = sorted(glob(path + '/' + pref + '.*.' + suff))
+    for filepath in filelist:
+        trmmfile = TRMM3B42RTFile(filepath)
+     #   time_string = trmmfile.header()['granule_ID'].split(".")[1]
+     #   time_stamps.append(datetime.strptime(time_string, "%Y%m%d%H"))
+        trmm_series.append(trmmfile.precip())
+
+    trmmdata = asarray(trmm_series)
+    save(path + '/' + pref, trmmdata)
+
+#trmm2npy('/home/santiago/Datasets/TRMM-3B42RT/200401')
+
+spsam_precc = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'precc')
+spsam_precl = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'precl')
+spsam_prec = []
+for idx in range(len(spsam_precc)):
+    spsam_prec.append(spsam_precc[idx] + spsam_precl[idx])
+spsam_prec = accum3(spsam_prec)
+agcm_prec = accum3(read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-ARA02', 'prec'))
+agcm_time = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-ARA02', 'time')
+glob_time = []
+for step in range(2,len(agcm_time),3):
+    glob_time.append(agcm_time[step])
+print glob_time
+print len(spsam_prec), len(agcm_prec)
 
 trmm_time, trmm_prec = load_trmm_series('/home/santiago/Datasets/TRMM-3B42RT/200401', 360.0-39.5, -4.0)
-agcm_time = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
-agcm_prec = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'prec')
-spsam_time = read_semiprogout()
-spsam_prec =
+print len(spsam_prec), len(agcm_prec), len(trmm_prec), len(trmm_time[1:])
+print glob_time[0], trmm_time[0]
+print glob_time[-1], trmm_time[-1]
+#for tt in range(len(trmm_time)):
+#    print trmm_time[tt], agcm_time[tt*3]
+
+from matplotlib.pyplot import plot, plot_date, title, show
+plot(trmm_time[1:], trmm_prec[1:]) #, agcm_prec, spsam_prec)
+plot(trmm_time[1:], agcm_prec)
+plot(trmm_time[1:], spsam_prec)
+show()
+
+#agcm_time = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
+#agcm_prec = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'prec')
+#spsam_time = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ZMC01_032x001x4000x20s/SEMIPROG_OUT')
+
+
 
 #print accum3(prec_agcm)
 #print load_trmm_series('/home/santiago/Datasets/TRMM-3B42RT/200401', 360.0-39.5, -4.0)
