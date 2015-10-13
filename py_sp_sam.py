@@ -7,6 +7,24 @@ __licence__ = 'FY - Fuck You'
 __date__ = '2015/09/18'
 
 
+# Paths for important data:
+diagin_ara02 = '/home/santiago/Modelos/SEMIPROG_IN/SEMIPROG_IN-SPDARA02'
+diadin_kuo02 = '/home/santiago/Modelos/SEMIPROG_IN/SEMIPROG_IN-SPDKUO02'
+diagin_zmc01 = '/home/santiago/Modelos/SEMIPROG_IN/SEMIPROG_IN-SPDKUO02'
+
+diagout_ara02 = '/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT'
+diagout_kuo02 = '/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT'
+diagout_zmc01 = '/home/santiago/Modelos/exps_spsam_2015-09-24/ZMC01_032x001x4000x20s/SEMIPROG_OUT'
+
+agcm1d_ara02 = '/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-ARA02'
+agcm1d_kuo02 = '/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-KUO02'
+agcm1d_zmc01 = '/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-ZMC01'
+
+trmm200401 = '/home/santiago/Datasets/TRMM-3B42RT/200401'
+lonfor = 360.0-39.5
+latfor = -4.0
+
+
 def read_semiprogin(input_file, return_var):
     """
     This Python function simply read a variable from SEMIPROG_IN file given the
@@ -114,7 +132,8 @@ def read_semiprogout(input_file, return_var):
     data = open(input_file, 'r')
     lines = data.readlines()
 
-    nrec = len(lines) - 3 / 38
+    nvar = 38
+    nrec = len(lines) - 3 / nvar
 
     nz = int(lines[0].split()[3])
     nt = int(lines[0].split()[4])
@@ -139,7 +158,7 @@ def read_semiprogout(input_file, return_var):
         idx = var_dict[return_var] - 12
         var_vals = []
         for l in range(nt):
-            var_vals.append(float(lines[l+3].split()[idx]))
+            var_vals.append(float(lines[3 + l * nvar].split()[idx]))
         return var_vals
     else:
         var_vals = [[0 for x in range(nz)] for x in range(nt)]
@@ -149,6 +168,24 @@ def read_semiprogout(input_file, return_var):
                 var_vals[l][k] = float(lines[n].split()[k])
                 print var_vals[l][k]
         return var_vals
+
+
+def get_semiprog_time(input_file):
+    """
+    Given the file path, provides an hourly time axis for plotting SEMIPROG_OUT
+    variables
+    :param input_file: input file name - full or relative path;
+    :return: a list of datetime objects.
+    """
+
+    from datetime import datetime
+
+    t0 = read_semiprogout(input_file, 't0')
+    nt = read_semiprogout(input_file, 'nt')
+    t0py = datetime.strptime(t0, "%HZ%d%b%Y")
+    timelist = []
+    for tt in range(nt):
+        timelist.append
 
 
 def read_agcmdiagfields1d(input_file, return_var):
@@ -354,7 +391,60 @@ def trmm2npy(path):
     trmmdata = asarray(trmm_series)
     save(path + '/' + pref, trmmdata)
 
+
+def plot_prec_ara02():
+    from matplotlib.pyplot import plot, show
+    trmm_time, trmm_prec = load_trmm_series(trmm200401, lonfor, latfor)
+    agcm_prec = accum3(read_agcmdiagfields1d(agcm1d_ara02, 'prec'))
+    diag_prec = accum3(read_semiprogout(diagout_ara02, 'precc'))
+    plot(trmm_time, trmm_prec, trmm_time, agcm_prec, trmm_time, diag_prec)
+    show()
+
+plot_prec_ara02()
+
+quit()
+
+
+
+precc1 = read_semiprogout(diagout_ara02, 'precc')
+precc2 = read_semiprogout(diagout_kuo02, 'precc')
+precc3 = read_semiprogout(diagout_zmc01, 'precc')
+
+nt = read_semiprogout(diagout_ara02, 'nt')
+time = range(nt)
+
+from matplotlib.pyplot import plot, show
+plot(time, precc1)
+show()
+
+quit()
+
+
 #trmm2npy('/home/santiago/Datasets/TRMM-3B42RT/200401')
+
+
+t0 = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 't0')
+nt = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'nt')
+dt = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'dt')
+time = range(nt)
+
+print t0, nt, dt
+
+#time = get_semiprog_time('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT')
+precc = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'precc')
+precl = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'precl')
+
+for tt in range(nt):
+    print tt, precc[tt], precl[tt], precc[tt] + precl[tt]
+from matplotlib.pyplot import plot, show
+
+plot(time, precc)
+plot(time, precl)
+show()
+
+
+
+quit()
 
 spsam_precc = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'precc')
 spsam_precl = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'precl')
@@ -378,8 +468,8 @@ print glob_time[-1], trmm_time[-1]
 #    print trmm_time[tt], agcm_time[tt*3]
 
 from matplotlib.pyplot import plot, plot_date, title, show
-plot(trmm_time[1:], trmm_prec[1:]) #, agcm_prec, spsam_prec)
-plot(trmm_time[1:], agcm_prec)
+#plot(trmm_time[1:], trmm_prec[1:]) #, agcm_prec, spsam_prec)
+#plot(trmm_time[1:], agcm_prec)
 plot(trmm_time[1:], spsam_prec)
 show()
 
