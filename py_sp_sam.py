@@ -360,6 +360,7 @@ def load_trmm_series(path, long, lati):
     for it in range(ntim):
         trmm_point.append(trmm_series[it][lat_idx, lon_idx])
 
+    del(trmm_series)
     return time_stamps, trmm_point
 
 
@@ -392,6 +393,40 @@ def trmm2npy(path):
     save(path + '/' + pref, trmmdata)
 
 
+def trmm2file(path, long, lati):
+    """
+    Saves a timeseries of TRMM data for given lon, lat coordinates
+    :param path: Path for TRMM data.
+    :param long: Longitude.
+    :param lati: Latitude.
+    :return: saves the data in file "trmm2file.txt".
+    """
+    time, prec = load_trmm_series(path, long, lati)
+    print type(time)
+    fout = open("trmm2file.txt", "w")
+    for item in range(len(prec)):
+        print type(time[item])
+        fout.write(";".join([str(time[item]), str(prec[item])]))
+    fout.close()
+
+
+def trmmfile2py():
+    """
+    Reads as lists the data stored in "trmm2file.txt" provided by function
+    'trmm2file'.
+    :return: Time and respective data values.
+    """
+    trmmfile = open('trmm2file.txt', 'r')
+    time = []
+    data = []
+    for row in trmmfile:
+        time.append(row.strip().split(';')[0])
+        data.append(row.strip().split(';')[1])
+
+    return time, data
+
+
+
 def plot_prec_ara02():
     from matplotlib.pyplot import plot, show
     trmm_time, trmm_prec = load_trmm_series(trmm200401, lonfor, latfor)
@@ -400,104 +435,41 @@ def plot_prec_ara02():
     plot(trmm_time, trmm_prec, trmm_time, agcm_prec, trmm_time, diag_prec)
     show()
 
-plot_prec_ara02()
 
-quit()
+def barplot_prec_trmm():
+    from matplotlib import pyplot as p
 
+    fig = p.figure()
 
+    width = 0.25
+    time, prec = load_trmm_series(trmm200401, lonfor, latfor)
+    p.bar(time, prec)
+    #p.xticks(time + width / 2)
 
-precc1 = read_semiprogout(diagout_ara02, 'precc')
-precc2 = read_semiprogout(diagout_kuo02, 'precc')
-precc3 = read_semiprogout(diagout_zmc01, 'precc')
-
-nt = read_semiprogout(diagout_ara02, 'nt')
-time = range(nt)
-
-from matplotlib.pyplot import plot, show
-plot(time, precc1)
-show()
-
-quit()
+    fig.autofmt_xdate()
+    p.show()
 
 
-#trmm2npy('/home/santiago/Datasets/TRMM-3B42RT/200401')
+def sbs_prec():
+    import matplotlib.pyplot as p
+    import seaborn as s
+
+    f = p.plot(figsize=(8,6))
+    time, prec = load_trmm_series(trmm200401, lonfor, latfor)
+    s.barplot(time, prec, palette="BuGn_d")
+    f.set_ylabel("Precipitação")
+    p.show()
 
 
-t0 = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 't0')
-nt = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'nt')
-dt = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'dt')
-time = range(nt)
-
-print t0, nt, dt
-
-#time = get_semiprog_time('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT')
-precc = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'precc')
-precl = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT', 'precl')
-
-for tt in range(nt):
-    print tt, precc[tt], precl[tt], precc[tt] + precl[tt]
-from matplotlib.pyplot import plot, show
-
-plot(time, precc)
-plot(time, precl)
-show()
-
-
-
-quit()
-
-spsam_precc = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'precc')
-spsam_precl = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'precl')
-spsam_prec = []
-for idx in range(len(spsam_precc)):
-    spsam_prec.append(spsam_precc[idx] + spsam_precl[idx])
-spsam_prec = accum3(spsam_prec)
-agcm_prec = accum3(read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-ARA02', 'prec'))
-agcm_time = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-ARA02', 'time')
-glob_time = []
-for step in range(2,len(agcm_time),3):
-    glob_time.append(agcm_time[step])
-print glob_time
-print len(spsam_prec), len(agcm_prec)
-
-trmm_time, trmm_prec = load_trmm_series('/home/santiago/Datasets/TRMM-3B42RT/200401', 360.0-39.5, -4.0)
-print len(spsam_prec), len(agcm_prec), len(trmm_prec), len(trmm_time[1:])
-print glob_time[0], trmm_time[0]
-print glob_time[-1], trmm_time[-1]
-#for tt in range(len(trmm_time)):
-#    print trmm_time[tt], agcm_time[tt*3]
-
-from matplotlib.pyplot import plot, plot_date, title, show
-#plot(trmm_time[1:], trmm_prec[1:]) #, agcm_prec, spsam_prec)
-#plot(trmm_time[1:], agcm_prec)
-plot(trmm_time[1:], spsam_prec)
-show()
-
-#agcm_time = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
-#agcm_prec = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'prec')
-#spsam_time = read_semiprogout('/home/santiago/Modelos/exps_spsam_2015-09-24/ZMC01_032x001x4000x20s/SEMIPROG_OUT')
-
-
-
-#print accum3(prec_agcm)
-#print load_trmm_series('/home/santiago/Datasets/TRMM-3B42RT/200401', 360.0-39.5, -4.0)
-
-
-#time1d = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'time')
-#uves = read_agcmdiagfields1d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_1D-GRE01', 'uves')
-
-#print len(uves)
-#temv = read_agcmdiagfields2d('/home/santiago/Modelos/agcm-diagfields/AGCM_DIAGFIELDS_2D-GRE01', 'temv')
-
-#temp = read_semiprogin('/home/santiago/Modelos/SEMIPROG_IN/SEMIPROG_IN-SPDARA02', 'temp')
-#print temp
-
-#tkez = read_semiprogout('/home/santiago/Modelos/exps_spsam_1200s/ARA02_032x001x4000x20s/SEMIPROG_OUT', 'tkez')
-#tkez = read_semiprogout('/home/santiago/Modelos/exps_spsam_1200s/ZMC01_032x001x4000x20s/SEMIPROG_OUT', 'tkez')
-#print tkez
-
-# working simulations output:
-# /home/santiago/Modelos/exps_spsam_2015-09-24/ARA02_032x001x4000x20s/SEMIPROG_OUT
-# /home/santiago/Modelos/exps_spsam_2015-09-24/KUO02_032x001x4000x20s/SEMIPROG_OUT
-# /home/santiago/Modelos/exps_spsam_2015-09-24/ZMC01_032x001x4000x20s/SEMIPROG_OUT
-
+def plot_trmm_prec():
+    from matplotlib.pyplot import plot, legend, show, title
+    time, prec = load_trmm_series(trmm200401, lonfor, latfor)
+    agcm_prec = accum3(read_agcmdiagfields1d(agcm1d_ara02, 'prec'))
+    diag_prec = 1000*3600*accum3(read_semiprogout(diagout_ara02, 'precc'))
+    #plot(time, prec, color='black', linewidth=2, linestyle='-.', label="Precipitação TRMM")
+    plot(time, prec, color='black', linewidth=2, label="TRMM")
+    plot(time, agcm_prec, color='red', linewidth=2, label="MCGA")
+    plot(time, diag_prec, color='blue', linewidth=2, label="Superparametrizacao")
+    title('Precipitacao Fortaleza')
+    legend()
+    show()
